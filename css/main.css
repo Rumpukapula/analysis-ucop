@@ -1,21 +1,42 @@
-body, html {
-	height: 100%;
-}
-
-canvas {
-	display: block;
-}
-
-#content, #sidepanel {
+html, body, #container {
 	height: 100%;
 	margin: 0;
 	padding: 0;
 }
 
 #content {
-
+	height: 80%;
+	margin: 0;
+	padding: 0;
 }
 
-#sidepanel {
-	background-color: #F9F9F9;
+#services, #u-cop, #incidents {
+	height: 100%;
+}
+
+#services, #incidents {
+	overflow-y: auto;
+}
+
+#u-cop {
+	padding: 0 !important;
+}
+
+#canvas {
+	vertical-align: middle !important;
+}
+
+.service {
+	background-color: #EEEEEE;
+	margin-bottom: 10px;
+}
+
+.incident {
+	background-color: #EEEEEE;
+	margin-bottom: 10px;
+}
+
+.incident-icon {
+	width: 32px;
+	height: 32px;
 }

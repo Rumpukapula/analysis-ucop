@@ -2,14 +2,88 @@
 <html lang="en" data-ng-app="analysisApp">
 	<head>
     	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-  		<title>Incident-centric Risk Assessment in Critical Infrastructure</title>
+  		<title>U-COP - User-Constructed Operating Picture</title>
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
 		<link rel="stylesheet" href="css/main.css">
 	</head>
 
 	<body ng-controller="body">
+	
+	<!--
+				
+	<nav id="navbar" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				
+				<a class="navbar-brand" href="#">U-COP</a>
+			</div>
+			
+			<div id="navbar" class="collapse navbar-collapse">
+				<button ng-click="addNode()" class="btn btn-primary btn-top">Add Node</button>
+			</div>
+		</div>
+	</nav>
+	-->
+
+		<div id="container">
+			<div id="services" class="col-sm-2">
+				<h1 class="top-header">Services</h1>
+				<div class="col-sm-12 service" ng-repeat="service in othServices">
+					<h3>{{service.description}}</h3>
+					<p>{{service.location}}</p>
+					<p>{{service.contact.name}} ({{service.contact.phone}})</p>
+					<p>Requirements: <span ng-repeat="req in service.requirements">{{req.description}}, </span></p>
+				</div>
+			</div>
+			
+			<div id="u-cop" class="col-sm-7">
+				<div id="control-panel">
+					<h1 class="top-header">Operating Picture <button ng-click="configure()" class="btn btn-primary">Configure</button></h1>
+				</div>
+				
+				<canvas id="canvas"></canvas>
+			</div>
+			
+			<div id="incidents" class="col-sm-3">
+				<h1 class="top-header">Incidents</h1>	
+				<table class="table table-condensed">
+					<thead>
+						<tr>
+							<th></th>
+							<th>Incident</th>
+							<th>Service</th>
+							<th>Info</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="incident in incidents">
+							<td><img ng-src="{{incident.icon}}" class="incident-icon" /></td>
+							<td>{{incident.description}}</td>
+							<td>{{incident.affectedSystem.description}}</td>
+							<td><button class="btn btn-sm btn-primary"><span class="glyphicon glyphicon-info-sign"></span></button></td>
+						</tr>
+					</tbody>
+				</table>
+				<!--
+				<div class="col-sm-12 incident" ng-repeat="incident in incidents">
+					<h3><img ng-src="{{incident.icon}}" class="incident-icon" /> {{incident.description}}</h3>
+					<p>{{incident.affectedSystem.description}}</p>
+					<p>{{incident.occurred | date:'hh:mm:ss - dd.MM.yyyy'}}</p>
+					<p>{{incident.contact.name}} ({{incident.contact.phone}})</p>
+				</div>
+				-->
+			</div>
+		</div>
+	
+	<!--
 		<div id="content" class="col-sm-9">
-			<canvas id="canvas"></canvas>
+			
 		</div>
 		<div id="sidepanel" class="col-sm-3">
 			<div>
@@ -40,11 +114,14 @@
 				<h2>Handled events</h2>
 			</div>
 		</div>
+	-->
 	</body>
 	
 	<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
 	<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.js"></script>
+	
+	<script src="js/vendor/ui-bootstrap-tpls-0.12.0.min.js"></script>
 	
 	<script src="js/app.js"></script>
 </html>

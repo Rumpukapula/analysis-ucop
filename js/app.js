@@ -1,6 +1,8 @@
-var analysisApp = angular.module('analysisApp', []);
+var analysisApp = angular.module('analysisApp', [
+	'ui.bootstrap'
+]);
 
-analysisApp.controller('body', function($scope) {
+analysisApp.controller('body', function($scope, $modal, $log) {
 	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	var canvas_left = canvas.offsetLeft;
@@ -9,32 +11,7 @@ analysisApp.controller('body', function($scope) {
 	$scope.selectedService = {};
 	
 	$scope.constants = {
-		'outerWorld':{
-			'start_y':0,
-			'max_height':100
-		},
-		'services': {
-			'start_y':100,
-			'max_height':window.innerHeight-100-200 // = canvas.height - outerWorld.height - ownSystems.height
-		},
-		'ownSystems': {
-			'start_y':window.innerHeight-200,
-			'max_height':200
-		},
-		'timeLevels':[
-			{
-				'value':-1,
-				'name':'> 3 h'
-			},
-			{
-				'value':180,
-				'name':'< 3 h'
-			},
-			{
-				'value':30,
-				'name':'< 30 min'
-			}
-		]
+		
 	};
 	
 	$scope.contacts = [
@@ -55,150 +32,140 @@ analysisApp.controller('body', function($scope) {
 		}
 	];
 	
-	$scope.services = [
+	$scope.othServices = [
 		{
 			'location':'Helsinki',
 			'description':'Energiayhtiö',
 			'contact': $scope.contacts[2],
-			'requirements':[],
-			'headerPosition': {
-				'left':0,
-				'top':0,
-				'width':0,
-				'height':0
-			},
-
-			// the position on the canvas
-			'element': {
-				'left':0,
-				'top':0,
-				'width':0,
-				'height':0,
-				
-				'header': {
-					'left':0,
-					'top':0,
-					'width':0,
-					'height':0
-				}
-			}
+			'requirements':[]
 		}
 	];
 	
-	$scope.services.push(
+	$scope.othServices.push(
 		{
 			'location':'Helsinki',
 			'description':'Catering-yritys',
 			'contact': $scope.contacts[1],
-			'requirements':[$scope.services[0]],
-			'headerPosition': {
-				'left':0,
-				'top':0,
-				'width':0,
-				'height':0
-			},
-			
-			// the position on the canvas
-			'element': {
-				'left':0,
-				'top':0,
-				'width':0,
-				'height':0,
-				
-				'header': {
-					'left':0,
-					'top':0,
-					'width':0,
-					'height':0
-				}
-			}
+			'requirements':[$scope.othServices[0]]
 		}
 	);
 	
-	$scope.ownSystems = [
+	$scope.ownServices = [
 		{
 			'location': 'Helsinki',
 			'description': 'Tekniikan laitos',
 			'contact': $scope.contacts[0],
-			'requirements': [$scope.services[0],$scope.services[1]], // add service & system requirements here (list of services)
-			
-			// the position on the canvas
-			'element': {
-				'left':0,
-				'top':0,
-				'width':0,
-				'height':0
-			}
+			'requirements': [$scope.othServices[0],$scope.othServices[1]] // add service & system requirements here (list of services)
 		},
 		{
 			'location': 'Tampere',
 			'description': 'Höpölaitos',
 			'contact': $scope.contacts[0],
-			'requirements': [$scope.services[1]], // add service & system requirements here (list of services)
-			
-			// the position on the canvas
-			'element': {
-				'left':0,
-				'top':0,
-				'width':0,
-				'height':0
-			}
+			'requirements': [$scope.othServices[1]] // add service & system requirements here (list of services)
 		},
+		{
+			'location': 'Rovaniemi',
+			'description': 'Kovalaitos',
+			'contact': $scope.contacts[0],
+			'requirements': [] // add service & system requirements here (list of services)
+		}
 	];
 	
 	$scope.incidents = [
 		{
 			'description':'Powerline destruction',
-			'occurred': new Date(2014,11,5,8,30,0,0),
-			'affectedSystem': $scope.services[0],
+			'occurred': new Date(2014,10,18,8,30,0,0),
+			'affectedSystem': $scope.othServices[0],
 			//'magnitude':5,	// this could be a value between 0-9 or something
 			//'duration':72, 	// in hours
 			//'trend':0, 		// value from [-1,0,1]
 			//'effect':'', 		// descriptive or numeral?
-			'contact':$scope.services[0].contact,
-			'icon':'img/icon_power_outage'
+			'contact':$scope.othServices[0].contact,
+			'icon':'img/icon_power_outage.png'
 		}
 	];
 	$scope.incidents.push(
 		{
 			'description':'Power outage',
 			'occurred': new Date(2014,11,5,9,0,0,0),
-			'affectedSystem': $scope.ownSystems[0],
+			'affectedSystem': $scope.ownServices[0],
 			//'magnitude':5,	// this could be a value between 0-9 or something
 			//'duration':72, 	// in hours
 			//'trend':0, 		// value from [-1,0,1]
 			//'effect':'', 		// descriptive or numeral?
-			'contact':$scope.ownSystems[0].contact,
-			'icon':'img/icon_power_outage'
+			'contact':$scope.ownServices[0].contact,
+			'icon':'img/icon_power_outage.png'
 		}
 	);
 	
-	function updateOwnSystems() {
-		var screen_width_per_system = canvas.width / $scope.ownSystems.length;
-		var screen_height_per_system = $scope.constants.ownSystems.max_height;
-		var current_x = 0;
-		var current_y = $scope.constants.ownSystems.start_y; 
+	$scope.configure = function() {
+		var modalInstance = $modal.open({
+			templateUrl: 'html/configure.html',
+			controller: 'configure',
+			size: 'lg',
+			resolve: {
+				'ownServices': function() { return $scope.ownServices; }
+			}
+		});
 
-		// update own system positions
-		for(var i = 0; i < $scope.ownSystems.length; i++) {
-			$scope.ownSystems[i].element.left = current_x;
-			$scope.ownSystems[i].element.top = current_y;
-			$scope.ownSystems[i].element.width = screen_width_per_system;
-			$scope.ownSystems[i].element.height = screen_height_per_system;
+		modalInstance.result.then(function() {
 			
-			current_x += screen_width_per_system;
+		}, function () {
+			$log.info('Modal dismissed at: ' + new Date());
+		});
+	};
+	
+	function initOwnServicePositions() {
+		for(var i = 0; i < $scope.ownServices.length; i++) {
+			var service = $scope.ownServices[i];
+			var angle = (i/$scope.ownServices.length)*2*Math.PI;
+			service.drawPosition = {'angle':angle};
 		}
 	}
 	
-	function updateServices() {
-		// remove services that were marked to be destroyed
-		for(var i = $scope.services.length; i > 0; i--) {
-			if($scope.services[i-1].destroy) {
-				$scope.services.splice(i-1,1);
+	function updateOwnServices() {
+		// update own service positions		
+		for(var i = 0; i < $scope.ownServices.length; i++) {
+			var service = $scope.ownServices[i];
+			
+			if(service.drawPosition==undefined) {
+				initOwnServicePositions();
+				break;
+			} else {
+				service.drawPosition.angle += Math.PI*0.003
+				if(service.drawPosition.angle > 2*Math.PI) {
+					service.drawPosition.angle = 0;
+				}
 			}
 		}
 	}
 	
+	function initOthServicePositions() {
+		for(var i = 0; i < $scope.othServices.length; i++) {
+			var service = $scope.othServices[i];
+			var angle = (i/$scope.othServices.length)*2*Math.PI;
+			service.drawPosition = {'angle':angle};
+		}
+	}
+	
+	function updateOthServices() {
+		// update other service positions		
+		for(var i = 0; i < $scope.othServices.length; i++) {
+			var service = $scope.othServices[i];
+			
+			if(service.drawPosition==undefined) {
+				initOthServicePositions();
+				break;
+			} else {
+				service.drawPosition.angle -= Math.PI*0.001
+				if(service.drawPosition.angle > 2*Math.PI) {
+					service.drawPosition.angle = 0;
+				}
+			}
+		}
+	}
+	
+	/*
 	function drawOuterWorld() {
 		var current_x = 0;
 		var current_y = $scope.constants.outerWorld.start_y;
@@ -212,23 +179,49 @@ analysisApp.controller('body', function($scope) {
 		ctx.fill();
 		ctx.stroke();
 	}
+	*/
 	
-	function drawOwnSystems() {
+	function drawOwnServices() {
 		// system styling
+		
+		var center_x = canvas.width / 2;
+		var center_y = canvas.height / 2;
+		var ring_r = 50;
+		// center node
+		ctx.fillStyle = '#000000';
+		ctx.lineWidth = 3;
+		ctx.strokeStyle = '#000000';
+		ctx.beginPath();
+		ctx.arc(center_x,center_y,10,0,2*Math.PI);
+		ctx.fill();
+		ctx.stroke();
+		
+		// translate own services to center
+		ctx.translate(center_x,center_y);
+		
+		
 		ctx.fillStyle = '#FF0000';
 		ctx.lineWidth = 3;
 		ctx.strokeStyle = '#00FF00';
 		
-		for(var i = 0; i < $scope.ownSystems.length; i++) {
-			var system = $scope.ownSystems[i];
+		var max = $scope.ownServices.length;
+		
+		for(var i = 0; i < $scope.ownServices.length; i++) {
+			var service = $scope.ownServices[i];
 			
 			ctx.beginPath();
-			ctx.rect(system.element.left, system.element.top, system.element.width, system.element.height);
+			ctx.arc(Math.cos(service.drawPosition.angle)*ring_r, 
+					Math.sin(service.drawPosition.angle)*ring_r,
+					10,0,2*Math.PI);
 			ctx.fill();
 			ctx.stroke();
 		}
+		
+		// reverse translate
+		ctx.translate(-center_x,-center_y);
 	}
 	
+	/*
 	function drawServiceDescription(service,text_x,text_y) {
 		ctx.textAlign = 'center';
 		ctx.fillStyle = 'black';
@@ -261,48 +254,41 @@ analysisApp.controller('body', function($scope) {
 		ctx.font='12px Arial';
 		ctx.fillText("("+service.location+")", text_x, text_y);
 	}
+	*/
 	
-	function drawServices() {
-		var screen_width_per_service = canvas.width / $scope.services.length;
-		var screen_height_per_service = $scope.constants.services.max_height;
-		var height_per_timelevel = screen_height_per_service / $scope.constants.timeLevels.length;
-		var current_x = 0;
-		var current_y = $scope.constants.services.start_y; 
-		
+	function drawOthServices() {
 		// system styling
-		ctx.lineWidth = 3;
-		ctx.textAlign = 'center';
-		ctx.fillStyle = 'black';
+		var center_x = canvas.width / 2;
+		var center_y = canvas.height / 2;
+		var ring_r = 300;
 		
-		for(var i = 0; i < $scope.services.length; i++) {
-			// draw service borders
+		
+		// translate oth services to center
+		ctx.translate(center_x,center_y);
+		
+		
+		ctx.fillStyle = '#000000';
+		ctx.lineWidth = 3;
+		ctx.strokeStyle = '#FFFF00';
+		
+		var max = $scope.othServices.length;
+		
+		for(var i = 0; i < $scope.othServices.length; i++) {
+			var service = $scope.othServices[i];
+			
 			ctx.beginPath();
-			ctx.rect(current_x,current_y,screen_width_per_service,screen_height_per_service);
+			ctx.arc(Math.cos(service.drawPosition.angle)*ring_r, 
+					Math.sin(service.drawPosition.angle)*ring_r,
+					10,0,2*Math.PI);
+			ctx.fill();
 			ctx.stroke();
-			
-			// write service description
-			var text_x = (current_x+(screen_width_per_service/2));
-			var text_y = current_y+30;
-			drawServiceDescription($scope.services[i],text_x,text_y);
-			
-			// draw time levels
-			ctx.strokeStyle = '#999999';
-			for(var j = 0; j < $scope.constants.timeLevels.length; j++) {
-				ctx.beginPath();
-				ctx.rect(current_x,current_y+j*height_per_timelevel,screen_width_per_service,height_per_timelevel);
-				ctx.stroke();
-				
-				// timelevel texts
-				ctx.textAlign = 'start';
-				ctx.font='12px Arial';
-				ctx.fillText($scope.constants.timeLevels[j].name, current_x+10, current_y+j*height_per_timelevel+24);
-				
-			}
-			
-			current_x += screen_width_per_service;
 		}
+		
+		// reverse translate
+		ctx.translate(-center_x,-center_y);
 	}
 	
+	/*
 	function drawIncidents() {
 		for(var i = 0; i < $scope.incidents.length; i++) {
 			var incident = $scope.incidents[i];
@@ -332,24 +318,9 @@ analysisApp.controller('body', function($scope) {
 					ctx.setTransform(1,0,0,1,0,0);
 				}
 			}
-			
-			/*
-			// incident object structure
-			{
-				'description':'Power outage',
-				'occurred': new Date(2014,11,5,9,0,0,0),
-				'affectedSystem': $scope.ownSystems[0],
-				//'magnitude':5,	// this could be a value between 0-9 or something
-				//'duration':72, 	// in hours
-				//'trend':0, 		// value from [-1,0,1]
-				//'effect':'', 		// descriptive or numeral?
-				'contact':$scope.ownSystems[0].contact,
-				'icon':'img/icon_power_outage'
-			}
-			*/
-			
 		}
 	}
+	*/
 	
 	function mainLoop() {
 		var beginTime = new Date().getTime();
@@ -361,14 +332,14 @@ analysisApp.controller('body', function($scope) {
 		ctx.fillRect(0,0,canvas.width,canvas.height);
 		
 		// update services and incidents
-		updateOwnSystems();
-		updateServices();
+		updateOwnServices();
+		updateOthServices();
 		
 		// draw elements
-		drawOuterWorld();
-		drawOwnSystems();
-		drawServices();
-		drawIncidents();
+		//drawOuterWorld();
+		drawOwnServices();
+		drawOthServices();
+		//drawIncidents();
 		
 		/*
 		* Calculate frame execution time and calculate
@@ -384,7 +355,6 @@ analysisApp.controller('body', function($scope) {
 		ctx.font = "10pt Arial";
 		ctx.fillText  ("FPS : "+1000/(endTime - beginTime)+" (Limited to 30)", 10, 20);
 		ctx.fillText  ("FPS Delay : "+delay, 10, 35);
-		ctx.fillText  ("Items : "+$scope.services.length, 10, 65);
 		
 		setTimeout(mainLoop, delay);
 	}
@@ -393,8 +363,8 @@ analysisApp.controller('body', function($scope) {
 	// resize the canvas to fill browser window dynamically
     window.addEventListener('resize', resizeCanvas, false);
     function resizeCanvas() {
-		canvas.width = window.innerWidth - $('#sidepanel').outerWidth();
-		canvas.height = window.innerHeight;
+		canvas.width = window.innerWidth - $('#services').outerWidth() - $('#incidents').outerWidth();
+		canvas.height = window.innerHeight - $('#control-panel').outerHeight() - 30;
 
 		/*
 		* Your drawings need to be inside this function otherwise they will be reset when 
@@ -405,6 +375,7 @@ analysisApp.controller('body', function($scope) {
     resizeCanvas();
 	
 	// canvas event listeners (e.g. clicks)
+	/*
 	canvas.addEventListener('click', function(event) {
 		var x = event.pageX - canvas_left;
 		var y = event.pageY - canvas_top;
@@ -425,4 +396,49 @@ analysisApp.controller('body', function($scope) {
 			$scope.$apply();
 		}
 	}, false);
+	*/
+});
+
+analysisApp.controller('configure', function($scope, $modalInstance, ownServices) {
+	$scope.services = ownServices;
+	for(var i = 0; i < $scope.services.length; i++) {
+		$scope.services[i].editing = false;
+	}
+	
+	$scope.addNew = function() {
+		$scope.services.push(
+			{
+				'location': '',
+				'description': '',
+				'contact': '',
+				'requirements': [], // add service & system requirements here (list of services)
+				'editing':true
+			}
+		);
+	};
+	
+	$scope.edit = function(service) {
+		service.editing = true;
+	};
+	
+	$scope.save = function(service) {
+		service.editing = false;
+	};
+	
+	$scope.remove = function(service) {
+		for(var i = 0; i < $scope.services.length; i++) {
+			if($scope.services[i]==service) {
+				$scope.services.splice(i,1);
+				break;
+			}
+		}
+	};
+	
+	$scope.ok = function () {
+		$modalInstance.close();
+	};
+
+	$scope.cancel = function () {
+		$modalInstance.dismiss('cancel');
+	};
 });
